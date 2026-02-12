@@ -14,6 +14,15 @@ const config = {
   }
 };
 
+// CORS global (recomendado)
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  if (req.method === "OPTIONS") return res.sendStatus(204);
+  next();
+});
+
 // Endpoint: Inventarios_Molino_MBEW
 // Devuelve: MATNR (material) y LBKUM (inventario en kg)
 app.get("/Inventarios_Molino_MBEW", async (req, res) => {
@@ -25,7 +34,6 @@ app.get("/Inventarios_Molino_MBEW", async (req, res) => {
       FROM Inventarios_Molino_MBEW
     `);
 
-    res.setHeader("Access-Control-Allow-Origin", "*");
     res.json(result.recordset);
   } catch (err) {
     res.status(500).json({ error: err.toString() });
@@ -43,14 +51,32 @@ app.get("/Inventarios_Transito", async (req, res) => {
       FROM Inventarios_Transito
     `);
 
-    res.setHeader("Access-Control-Allow-Origin", "*");
     res.json(result.recordset);
   } catch (err) {
     res.status(500).json({ error: err.toString() });
   }
 });
 
-app.listen(3000, () => {
-  console.log("API Inventarios Molino/Transito corriendo en puerto 3000");
+// Endpoint: Descripcion_Productos
+// Devuelve: MATNR (material) y MAKTX (descripcion)
+app.get("/Descripcion_Productos", async (req, res) => {
+  try {
+    const pool = await sql.connect(config);
+
+    const result = await pool.request().query(`
+      SELECT MATNR, MAKTX
+      FROM Descripcion_Productos
+    `);
+
+    res.json(result.recordset);
+  } catch (err) {
+    res.status(500).json({ error: err.toString() });
+  }
+});
+
+// Puerto compatible con Render
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`API Inventarios/Descripcion_Productos corriendo en puerto ${PORT}`);
 });
 
